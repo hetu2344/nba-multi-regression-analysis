@@ -1,0 +1,78 @@
+---
+title: "Predicting Avg. Points per game of NBA Players - Intro Draft (Project Part 2)"
+author: "Het Patel (7972424)"
+date: "Nov. 22 2023"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# importing required libraries
+library(kableExtra) # for kable()
+```
+# Question
+
+## Response Variable:
+The response variable that I would like to model is PTS, i.e., average Points per game of a NBA player in 2022-23 regular season.
+
+## Explanatory Variable:
+Variable FGA, i.e., average field goals attempted per game and FTA, i.e., average field throws attempted per game for a NBA player in 2022-23 regular season.
+
+The reason why I choose these two variables as my explanatory is because more the number of field and free throws attempted by a player, more the chances that a player will score more points.
+
+# Dataset
+
+```{r}
+nba <- read.csv("nbaplayers.csv")
+kable(nba, format = "markdown")
+```
+
+## Dataset Citation
+
+National Basketball Association.(2023). NBA Advance Player Stats(2022-23 Season)[Data set]. NBA Media Ventures. [https://www.nba.com/stats/players/traditional?PerMode=Totals&sort=PTS&dir=-1&Season=2022-23](https://www.nba.com/stats/players/traditional?PerMode=Totals&sort=PTS&dir=-1&Season=2022-23)
+
+\newpage
+
+## Variables
+
+The dataset contains total of 7 variables and the details for each is as follows:
+
+1) The **Rank** variable is the standing of player in order of average points scored in 2022-23 regular season.
+
+2) The **PLAYER** variable is the name of NBA player.
+
+3) The **TEAM** variable is the name of team in which player played the 2022-23 regular season.
+
+4) The **GP** variable is the number of games played by the player in the 2022-23 regular season.
+
+5) The **PTS** variable is the average number of points scored per game by a player in 2022-23 regular season.
+
+6) The **FGA** variable is the average number of field throws attempted per game by a player in 2022-23 regular season.
+
+7) The **FTA** variable is the average number of free throws attempted per game by a player in 2022-23 regular season.
+
+## Scatterplots
+
+```{r}
+plot(nba$FGA, nba$PTS, main = "Field throws attempted (avg) vs Points scored (avg)",
+     xlab = "FGA", ylab = "PTS")
+```
+\newpage
+```{r}
+rsqr1 <- cor(nba$FGA, nba$PTS)^2
+rsqr1
+```
+
+The $r^2_{Y \sim X_{1}}$ = 0.555407, which shows that they appear to be in relationship.
+
+```{r}
+plot(nba$FGA, nba$PTS, main = "Free throws attempted (avg) vs Points scored (avg)",
+     xlab = "FTA", ylab = "PTS")
+rsqr2 <- cor(nba$FTA, nba$PTS)^2
+rsqr2
+```
+
+The $r^2_{Y \sim X_{2}}$ = 0.5949966, which shows that they are correlated with each other.
