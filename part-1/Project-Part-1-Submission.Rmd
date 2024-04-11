@@ -1,0 +1,54 @@
+---
+title: "Project Part 1"
+author: "Het Patel (7972424)"
+date: "9 Nov 2023"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+nba <- read.csv("nbaplayers.csv")
+```
+
+DESCREPTION: This is dataset of 50 NBA players from 2022-23 regular season. This dataset has total of 539 players but because of the project I have taken the first 50 players from it. It has the following columns:
+
+1)  **Rank**: The standing of the player
+2)  **PLAYER**: Name of the player
+3)  **TEAM**: Team in which player play
+4)  **GP**: Games played in the season
+5)  **PTS**: Average points per game in that season
+6)  **FGA**: Field goals attempted per game in that season
+7)  **FTA**: Free throws attemplted per game in that season
+
+Here's the URL where I found my dataset: [dataset link](https://www.nba.com/stats/players/traditional?PerMode=Totals&sort=PTS&dir=-1&Season=2022-23)
+
+My response variable is PTS (average points per game)
+
+My two explanatory variables are FGA (average field goals attempted) and FTA (Free throws attemplted per game)
+
+```{r}
+nba2.lm <- lm(PTS ~ FGA, data = nba)
+summary(nba2.lm)
+
+# R^2 = 0.5554, Adj_r^2 = 0.5461
+
+
+nba3.lm <- lm(PTS ~ FTA, data = nba)
+summary(nba3.lm)
+
+#R^2 = 0.595, Adj_r^2 = 0.5866
+```
+
+For $Y\sim X1$, $r^2=0.5554$ and $R^2_{adj}=0.5461$ For $Y\sim X2$, $r^2=0.595$ and $R^2_{adj}=0.5866$
+
+```{r}
+nba1.lm <- lm(PTS ~ FGA + FTA, data = nba)
+summary(nba1.lm)
+
+# Adj_r^2 = 0.8578
+```
+
+For $Y\sim X1 + X2$, $R^2_{adj}=0.8578$
