@@ -1,0 +1,293 @@
+---
+title: "Predicting Points per game of NBA Players"
+author: "Het Patel (7972424)"
+date: "1 Dec. 2023"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question
+
+In this project I would like to predict number of points per game from for an NBA player. This prediction might be helpful for team management to decide their players, a player's overall performance, player's valuation and many more.
+
+The response variable in my project is the number of points scored by an NBA player per game (*PTS*). And I will use number of field throws per game (*FTA*) and number of free throws per game (*FTA*) by that player per game as my explanatory variable to predict the number of points per game.
+
+The reason why I choose these two variables as my explanatory is because the more number of field throws and number of free throws attempted by a player per game, the more chances that a player will score more points per game.
+
+## Data Set
+
+I have used data from the NBA's 2022-23 regular season. This data is available on the official stat centre website of NBA. The original data consist of every player who played in 2022-23 regular season, but I have short it down to top 50 players according to average points per game in that season.
+
+The dataset contains total of 3 variables and the details for each is as follows:
+
+1)  The **PTS** variable is the average number of points scored per game by a player in 2022-23 regular season.
+
+2)  The **FGA** variable is the average number of field throws attempted per game by a player in 2022-23 regular season.
+
+3)  The **FTA** variable is the average number of free throws attempted per game by a player in 2022-23 regular season.
+
+\newpage
+
+Here is the actual data set containing 50 observations:
+
+```{r}
+nba <- read.csv("nbaplayers.csv")
+library(kableExtra) # for kable()
+kable(nba, format = "markdown")
+```
+
+National Basketball Association.(2023). *NBA Advance Player Stats(2022-23 Season)*\text{[Data set]}. NBA Media Ventures. <https://www.nba.com/stats/players/traditional?PerMode=Totals&sort=PTS&dir=-1&Season=2022-23>
+
+Scatterplot of field throws attempted per game and points scored per game:
+
+```{r}
+plot(nba$FGA, nba$PTS, main = "Field throws attempted per game vs Points scored per game",
+     xlab = "Field throws attempted per game", ylab = "Points scored per game")
+rsqr1 <- cor(nba$FGA, nba$PTS)^2
+rsqr1
+```
+
+The $r^2$ for field throws attempted and points scored per game is 0.555407, which shows that they appear to be in relationship.
+
+Scatterplot of field throws attempted per game and points scored per game:
+
+```{r}
+plot(nba$FGA, nba$PTS, main = "Free throws attempted per game vs Points scored per game",
+     xlab = "Free throws attempted per game", ylab = "Points scored per game")
+rsqr2 <- cor(nba$FTA, nba$PTS)^2
+rsqr2
+```
+
+Since the $r^2$ for free throws attempted and points scored per game is 0.5949966, they are correlated with each other.
+
+## Preliminary Model
+
+Simple linear model for predicting points scored per game from number of field throws attempted per game by a NBA player:
+
+```{r}
+nbax1.lm <- lm(PTS ~ FGA, data = nba)
+nbax1.lm
+```
+
+$\hat{y} = 1.584 + 1.286x_1$
+
+\newpage
+
+Simple linear model for predicting points scored per game from number of free throws attempted per game by a NBA player:
+
+```{r}
+nbax2.lm <- lm(PTS ~ FTA, data = nba)
+nbax2.lm
+```
+
+$\hat{y} = 17.532 + 1.194x_2$
+
+Additive model for predicting points scored per game from number of field throws attempted per game and number of free throws attempted per game by a NBA player:
+
+```{r}
+nba.lm <- lm(PTS ~ FGA + FTA, data = nba)
+nba.lm
+```
+
+$\hat{y} = 2.1481 + 0.9486x_1 + 0.9111x_2$
+
+The $R^2_{adj}$ for all three model can be found in their respective summary output.
+
+```{r}
+summary(nbax1.lm)
+```
+
+From the summary we have $R^2_{adj}$ for the model predicting points per game from number of field throw attempted per game for a NBA player is 0.5461.
+
+```{r}
+summary(nbax2.lm)
+```
+
+From the summary we have $R^2_{adj}$ for the model predicting points per game from number of free throw attempted per game for a NBA player is 0.5866.
+
+```{r}
+summary(nba.lm)
+```
+
+From the summary we have $R^2_{adj}$ for the additive model predicting points per game from number of field throw attempted and number of free throw per game for a NBA player is 0.8578.
+
+We can clearly see that the $R^2_{adj}$ for additive model is greater than the $R^2_{adj}$ for the model for predicting points per game from field throws attempted and for the model for predicting points per game from free throws attempted per game.
+
+\newpage
+
+Full second-order model for predicting points scored per game from number of field throws attempted per game and number of free throws attempted per game by a NBA player:
+
+```{r}
+nba.full <- lm(PTS ~ FGA + FTA + I(FGA^2) + I(FTA^2) + FGA*FTA, data = nba)
+nba.full
+```
+
+$\hat{y} = 22.488764 - 1.384117x_1 + 0.987313x_2 + 0.064920x^2_1 - 0.015331x^2_2 + 0.004703x_1x_2$
+
+ANOVA Table for the full second-order model:
+
+```{r}
+anova(nba.full)
+```
+
+| Source   | df  | Sum of Squares  | Mean Square  | F         |
+|----------|-----|-----------------|--------------|-----------|
+| Model    | 5   | 549.48          | 109.896      | 59.726    |
+| Error    | 44  | 81.08           | 1.84         |           |
+| -------- | --- | --------------- | ------------ | --------- |
+| Total    | 49  | 630.56          |              |           |
+
+P-value for the ANOVA test:
+
+```{r}
+pf(59.726, 5, 44, lower.tail = FALSE)
+```
+
+\newpage
+
+ANOVA test on the full second-order model to identify if one term is significant or not in model:
+
+1)  LEVEL OF SIGNIFICANCE: $\alpha =$ 0.05
+
+2)  HYPOTHESIS: $H_0: \beta_i = 0$, i = 1, 2, 3, 4, 5 vs $H_a: \text{at least one of } \beta_i \neq 0$, i = 1, 2, 3, 4, 5
+
+3)  DECISION RULE: Reject $H_0$ if p-value $\leq \alpha =$ 0.05
+
+4)  TEST STATISTICS: F = 59.726
+
+5)  P-VALUE: p-value = $1.7 \times 10^{-18}$
+
+6)  CONCLUSION: As p-value \< $\alpha =$ 0.05, we reject $H_0$. At 5% level of significance we have enough evidence that at least one of the term is significant in the full second-order model for predicting points from field throw attempted and free throw attempted per game by a NBA player in 2022-23 season.
+
+## Model Refinement
+
+In this section I will check if the terms present in the full second-order model for predicting points scored per game from field throws attempted and free throws attempted per game, are significant or not.
+
+To check if terms are significant or not I have to perform t-test on each term present in full model, this can be achieved by passing the full second-order model in the summary() function.
+
+```{r}
+summary(nba.full)
+```
+
+I can see from the summary() function that there is no significant term in the full second-order model for predicting points per game by field throws attempted and free throws attempted per game by a NBA player.
+
+I will check the VIF values for each term in the full second-order to assess multicollinearity in our model. Running the *vif()* on the full second-order model.
+
+```{r, message=FALSE}
+library(car) # for vif()
+vif(nba.full)
+```
+
+Since all of the VIF values for coefficient in full model except $FTA^2$ is more than 5, multicollinearity is present in the model. To resolve this I will remove the $FGA^2$, the term with the largest VIF value of 270.74792 among all other terms in the full-second model. Now, our reduced model consists of FGA, FTA, $FTA^2$ and FGA\*FTA terms.
+
+```{r}
+nba.reduced <- lm(PTS ~ FGA + FTA + I(FTA^2) + FGA*FTA, data = nba)
+summary(nba.reduced)
+```
+
+I can observe again that not all of the term in reduced model are significant, so I will check the VIF scores for each term in reduced model and check if multicollinearity is still present in the model.
+
+```{r, message=FALSE}
+vif(nba.reduced)
+```
+
+It is clear from the VIF scores that multicollinearity is still present in the reduced model, so I will again remove the term with the largest VIF score and make a new reduced model. As FGA\*FTA has the largest VIF score of 201.69293, I will remove it from the reduced and now our new reduced model contains FGA, FTA and $FTA^2$ terms.
+
+```{r}
+nba.reduced <- lm(PTS ~ FGA + FTA + I(FTA^2), data = nba)
+summary(nba.reduced)
+```
+
+From the summary of our reduced model, it is clear that, for $FTA^2$ variable, p-value = 0.59078 \> $\alpha$ = 0.05, so we conclude that $FTA^2$ is not significant and I will remove that term from the model, resulting a new reduced model in which only FGA and FTA term is there.
+
+The list of the co-efficient that are significant in the reduced model is:
+
+| Co-efficient | P-value                |
+|--------------|------------------------|
+| FGA          | $2.22 \times 10^{-12}$ |
+| FTA          | 0.00699                |
+
+After analyzing the full second-order model with series of VIF scores check and t-test on the terms in the model I propose the final reduced model as follows:
+
+```{r}
+nba.reduced <- lm(PTS ~ FGA + FTA, data = nba)
+nba.reduced
+```
+
+$y = 2.1481 + 0.9486x_1 + 0.9111x_2$
+
+The above is the reduced model which is trying to predict number of points scored per game by a NBA player from number of field throws and number of free throws attempted per game.
+
+Now let us run a nested F-test to test that the terms I removed were in fact zero comparing full model to reduced model.
+
+```{r}
+anova(nba.reduced, nba.full)
+```
+
+Nested F-test comparing full model to reduced model:
+
+1)  LEVEL OF SIGNIFICANCE: $\alpha$ = 0.05
+
+2)  HYPOTHESIS: $H_0: \beta_3 = \beta_4 = \beta_5 = 0$ vs $H_a: \text{atleast one of } \beta_i \neq 0, \text{ i = 3, 4, 5}$
+
+3)  DESICION RULE: Reject $H_0$ if p-value $\leq \alpha$
+
+4)  TEST STATISTICS: F = 0.8931
+
+5)  P-VALUE: p-value = 0.4523
+
+6)  CONCLUSION: As p-value \> $\alpha =$ 0.05, we fail to reject $H_0$. At 5% level of significance we have insufficient evidence that $FGA^2$, $FTA^2$, and *FGA\*FTA* are significant when FGA and FTA are present in the model.
+
+## Final Model and Assessment
+
+Now let us perform an ANOVA test on the reduced model to test if the reduced model adequately explains the relationship with number of points scored per game by a NBA player. To perform an ANOVA test we need F statistics and it respective p-value, which we can get from the output by running summary() on the reduced model.
+
+```{r}
+summary(nba.reduced)
+```
+
+ANOVA test on reduced model to identify if one term is significant or not in model:
+
+1)  LEVEL OF SIGNIFICANCE: $\alpha =$ 0.05
+
+2)  HYPOTHESIS: $H_0: \beta_1 = \beta_2 = 0$ vs $H_a: \text{at least one of } \beta_i \neq 0$, i = 1, 2
+
+3)  DECISION RULE: Reject $H_0$ if p-value $\leq \alpha =$ 0.05
+
+4)  TEST STATISTICS: F = 148.8
+
+5)  P-VALUE: p-value \< $2.2 \times 10^{-16}$
+
+6)  CONCLUSION: As p-value \< $\alpha =$ 0.05, we reject $H_0$. At 5% level of significance we have enough evidence that at least one of the term is significant in the reduced model for predicting points from field throw attempted and free throw attempted per game by a NBA player in 2022-23 season.
+
+Now let us check if the our reduced model violates any of the assumption that a linear model should met. I will check three assumption, first one being that error terms have constant variance, second assumption is linearity of relationship and last assumption to check is error terms follow normal distribution.
+
+To check first 2 assumption I have to make a residual plot for the reduced model.
+
+```{r}
+nba.fitted <- fitted.values(nba.reduced)
+nba.residual <- resid(nba.reduced)
+plot(nba.fitted, nba.residual, main = "Residual plot of reduced model",
+     xlab = "Fitted values", ylab = "Residual")
+```
+
+As we can see that the width of the plot seems to be narrower at the beginning and increasing at the center of the residual plot, the assumption of error terms have constant variance might be violated. Moreover, there is no discernible pattern in the points so it appears that linearity assumption would be correct.
+
+Now to check the normality assumption we have to make a normal quantile plot for the reduced model
+
+```{r}
+nba.stdres <- rstandard(nba.reduced)
+qqnorm(nba.stdres, ylab = "Residual", xlab = "Normal Scores", main = "NBA Normal Quantile Plot")
+qqline(nba.stdres)
+```
+
+Upon inspecting the normal quantile plot we can see that the normality assumption is fairly reasonable though there may be skewness in right tail as the points start to deviate from line at the end of the plot.
+
+## Conclusion
+
+Since the assumptions are fairly reasonable and from the conclusion of the ANOVA test on the reduced model I conclude that the number of field throws attempted and number of free throws attempted per game by a NBA player is adequately able to predict the number of points scored per game by that NBA player.
+
+The final regression equation as my best estimate of relationship between points scored per game, number of field throws attempted per game and number of free throws attempted per game for a NBA player is as follows: $$y = 2.1481 + 0.9486x_1 + 0.9111x_2$$
